@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Resume Trivia</title>
+        <style>
+            :root {
+                --bg: #120c2c;
+                --panel: rgba(20, 22, 52, 0.92);
+                --text: #f8f7ff;
+                --muted: #c8c2e6;
+                --accent: #f6c445;
+                --green: #30c47a;
+                --red: #ff5b6e;
+                --blue: #4f7cff;
+                --purple: #8657ff;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                font-family: "Trebuchet MS", Verdana, sans-serif;
+                color: var(--text);
+                background:
+                    radial-gradient(circle at top, rgba(134, 87, 255, 0.35), transparent 35%),
+                    linear-gradient(160deg, #0d0821 0%, #17123a 45%, #0c0f29 100%);
+            }
+
+            a {
+                color: var(--accent);
+            }
+
+            .shell {
+                width: min(1050px, calc(100% - 2rem));
+                margin: 0 auto;
+                padding: 1.25rem 0 2rem;
+            }
+
+            .topbar {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 1rem;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+
+            .nav-links a,
+            .play-again,
+            .start-btn,
+            .next-btn {
+                text-decoration: none;
+                border: 0;
+                border-radius: 999px;
+                padding: 0.85rem 1.2rem;
+                color: var(--text);
+                background: rgba(255, 255, 255, 0.1);
+                cursor: pointer;
+                font-weight: 700;
+            }
+
+            .hero {
+                background: var(--panel);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 1.75rem;
+                padding: 2rem;
+                box-shadow: 0 22px 40px rgba(0, 0, 0, 0.28);
+            }
+
+            .eyebrow {
+                text-transform: uppercase;
+                letter-spacing: 0.18rem;
+                color: var(--accent);
+                margin: 0 0 0.5rem;
+            }
+
+            h1, h2, h3, p {
+                margin-top: 0;
+            }
+
+            .hero p,
+            .status,
+            .results-copy {
+                color: var(--muted);
+                line-height: 1.7;
+            }
+
+            .game-panel {
+                margin-top: 1.5rem;
+                background: var(--panel);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 1.75rem;
+                padding: 1.5rem;
+            }
+
+            .hud {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+            }
+
+            .pill {
+                padding: 0.65rem 1rem;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--muted);
+                font-size: 0.95rem;
+            }
+
+            .question-card {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 1.35rem;
+                padding: 1.35rem;
+                margin-bottom: 1rem;
+            }
+
+            .answers {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1rem;
+            }
+
+            .answer-btn {
+                border: 0;
+                border-radius: 1.2rem;
+                padding: 1.1rem;
+                color: #fff;
+                text-align: left;
+                font-size: 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                min-height: 92px;
+                transition: transform 0.15s ease, opacity 0.15s ease;
+            }
+
+            .answer-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .answer-btn:disabled {
+                cursor: default;
+                opacity: 0.82;
+            }
+
+            .answer-a { background: #e84a5f; }
+            .answer-b { background: #ff847c; }
+            .answer-c { background: #2a9d8f; }
+            .answer-d { background: #3f72ff; }
+
+            .answer-btn.correct {
+                outline: 4px solid rgba(48, 196, 122, 0.95);
+            }
+
+            .answer-btn.wrong {
+                outline: 4px solid rgba(255, 91, 110, 0.95);
+                filter: grayscale(0.15);
+            }
+
+            .feedback {
+                min-height: 2rem;
+                margin: 1rem 0;
+                font-weight: 700;
+            }
+
+            .feedback.good { color: var(--green); }
+            .feedback.bad { color: var(--red); }
+
+            .controls {
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            .results-card {
+                text-align: center;
+                padding: 1rem 0 0.5rem;
+            }
+
+            .score-number {
+                font-size: clamp(3rem, 8vw, 5rem);
+                color: var(--accent);
+                margin-bottom: 0.5rem;
+            }
+
+            .results-actions {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.8rem;
+                margin-top: 1.5rem;
+            }
+
+            @media (max-width: 760px) {
+                .answers {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="shell">
+            <div class="topbar">
+                <h2>Resume Trivia Challenge</h2>
+                <div class="nav-links">
+                    <a href="From-Scratch.html">Back to Scratch Page</a>
+                    <a href="home.html">Main Site</a>
+                    <a href="resume.html">Resume</a>
+                </div>
+            </div>
+
+            <section class="hero">
+                <p class="eyebrow">Kahoot-Inspired Game</p>
+                <h1>How Well Do You Know Bjorn&rsquo;s Resume?</h1>
+                <p>Answer 10 fast-paced multiple-choice questions pulled from the resume page. The game keeps score, reveals the right answer, and gives you a final result at the end.</p>
+                <button class="start-btn" id="startBtn">Start Trivia</button>
+            </section>
+
+            <section class="game-panel hidden" id="gamePanel">
+                <div class="hud">
+                    <div class="pill" id="progressPill">Question 1 of 10</div>
+                    <div class="pill" id="scorePill">Score: 0</div>
+                </div>
+
+                <div class="question-card">
+                    <p class="status">Choose the best answer.</p>
+                    <h3 id="questionText"></h3>
+                </div>
+
+                <div class="answers" id="answers"></div>
+
+                <div class="feedback" id="feedback"></div>
+
+                <div class="controls">
+                    <button class="next-btn hidden" id="nextBtn">Next Question</button>
+                </div>
+            </section>
+
+            <section class="game-panel hidden" id="resultsPanel">
+                <div class="results-card">
+                    <p class="eyebrow">Final Score</p>
+                    <div class="score-number" id="finalScore">0/10</div>
+                    <p class="results-copy" id="resultsCopy"></p>
+                    <div class="results-actions">
+                        <button class="play-again" id="playAgainBtn">Play Again</button>
+                        <a class="play-again" href="resume.html">Read the Resume</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script>
+            const questions = [
+                {
+                    question: "What is Bjorn studying at Brigham Young University?",
+                    answers: ["Accounting", "Pre-Business", "Marketing", "Economics"],
+                    correct: 1
+                },
+                {
+                    question: "What GPA is listed on the resume?",
+                    answers: ["3.46", "3.86", "3.64", "3.26"],
+                    correct: 0
+                },
+                {
+                    question: "Which company is listed for Bjorn's on-campus internship?",
+                    answers: ["Property Reserve", "Hope Clinic", "Costar", "BYU Athletics"],
+                    correct: 0
+                },
+                {
+                    question: "How many years of Costar data did Bjorn analyze at Property Reserve?",
+                    answers: ["10 years", "12 years", "15 years", "20 years"],
+                    correct: 3
+                },
+                {
+                    question: "What language does Bjorn teach at the Missionary Training Center?",
+                    answers: ["Spanish", "Portuguese", "French", "English"],
+                    correct: 1
+                },
+                {
+                    question: "How many missionaries is Bjorn noted as mentoring and coaching?",
+                    answers: ["20", "25", "35", "50"],
+                    correct: 2
+                },
+                {
+                    question: "What result did Bjorn achieve in the BYU Retail Case Competition?",
+                    answers: ["Finalist", "Participant only", "Second place", "First place"],
+                    correct: 3
+                },
+                {
+                    question: "How many flowers were delivered through Friends for Flowers according to the resume?",
+                    answers: ["200+", "500+", "800+", "1200+"],
+                    correct: 2
+                },
+                {
+                    question: "At The Hope Clinic, what kind of interpretation did Bjorn provide?",
+                    answers: ["Portuguese-English", "French-English", "Spanish-English", "ASL-English"],
+                    correct: 2
+                },
+                {
+                    question: "How many countries has Bjorn traveled to?",
+                    answers: ["12", "14", "16", "18"],
+                    correct: 2
+                }
+            ];
+
+            const startBtn = document.getElementById("startBtn");
+            const gamePanel = document.getElementById("gamePanel");
+            const resultsPanel = document.getElementById("resultsPanel");
+            const questionText = document.getElementById("questionText");
+            const answersEl = document.getElementById("answers");
+            const feedbackEl = document.getElementById("feedback");
+            const progressPill = document.getElementById("progressPill");
+            const scorePill = document.getElementById("scorePill");
+            const nextBtn = document.getElementById("nextBtn");
+            const finalScore = document.getElementById("finalScore");
+            const resultsCopy = document.getElementById("resultsCopy");
+            const playAgainBtn = document.getElementById("playAgainBtn");
+
+            let currentQuestion = 0;
+            let score = 0;
+            let answered = false;
+
+            function shuffle(source) {
+                const copy = [...source];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy;
+            }
+
+            let gameQuestions = shuffle(questions);
+
+            function startGame() {
+                currentQuestion = 0;
+                score = 0;
+                answered = false;
+                gameQuestions = shuffle(questions);
+                startBtn.parentElement.classList.remove("hidden");
+                gamePanel.classList.remove("hidden");
+                resultsPanel.classList.add("hidden");
+                startBtn.parentElement.classList.add("hidden");
+                renderQuestion();
+            }
+
+            function renderQuestion() {
+                answered = false;
+                feedbackEl.textContent = "";
+                feedbackEl.className = "feedback";
+                nextBtn.classList.add("hidden");
+
+                const q = gameQuestions[currentQuestion];
+                questionText.textContent = q.question;
+                progressPill.textContent = `Question ${currentQuestion + 1} of ${gameQuestions.length}`;
+                scorePill.textContent = `Score: ${score}`;
+                answersEl.innerHTML = "";
+
+                q.answers.forEach((answer, index) => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = `answer-btn answer-${["a", "b", "c", "d"][index]}`;
+                    button.textContent = answer;
+                    button.addEventListener("click", () => handleAnswer(index, button));
+                    answersEl.appendChild(button);
+                });
+            }
+
+            function handleAnswer(index, button) {
+                if (answered) return;
+                answered = true;
+
+                const q = gameQuestions[currentQuestion];
+                const buttons = Array.from(document.querySelectorAll(".answer-btn"));
+
+                buttons.forEach((btn, btnIndex) => {
+                    btn.disabled = true;
+                    if (btnIndex === q.correct) btn.classList.add("correct");
+                });
+
+                if (index === q.correct) {
+                    score += 1;
+                    button.classList.add("correct");
+                    feedbackEl.textContent = "Correct. Nice work.";
+                    feedbackEl.classList.add("good");
+                } else {
+                    button.classList.add("wrong");
+                    feedbackEl.textContent = `Not quite. The correct answer is "${q.answers[q.correct]}."`;
+                    feedbackEl.classList.add("bad");
+                }
+
+                scorePill.textContent = `Score: ${score}`;
+                nextBtn.classList.remove("hidden");
+                nextBtn.textContent = currentQuestion === gameQuestions.length - 1 ? "See Results" : "Next Question";
+            }
+
+            function showResults() {
+                gamePanel.classList.add("hidden");
+                resultsPanel.classList.remove("hidden");
+                finalScore.textContent = `${score}/${gameQuestions.length}`;
+
+                if (score === gameQuestions.length) {
+                    resultsCopy.textContent = "Perfect score. You know this resume better than most hiring managers.";
+                } else if (score >= 8) {
+                    resultsCopy.textContent = "Strong round. You clearly paid attention to the big details.";
+                } else if (score >= 5) {
+                    resultsCopy.textContent = "Solid effort. A quick scan of the resume and you will be unstoppable next round.";
+                } else {
+                    resultsCopy.textContent = "This is a warm-up game anyway. Read through the resume once and try again.";
+                }
+            }
+
+            nextBtn.addEventListener("click", () => {
+                currentQuestion += 1;
+                if (currentQuestion < gameQuestions.length) {
+                    renderQuestion();
+                } else {
+                    showResults();
+                }
+            });
+
+            startBtn.addEventListener("click", startGame);
+            playAgainBtn.addEventListener("click", startGame);
+        </script>
+    </body>
+</html>
